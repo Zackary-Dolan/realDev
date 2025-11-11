@@ -1,0 +1,21 @@
+package normalNames;
+import java.lang.invoke.MethodHandles.Lookup;
+import java.rmi.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.*;
+import java.util.ArrayList;
+public class BookServer 
+{
+	public static void main(String [] args) 
+	{
+		try 
+		{
+			BookListInterface manager = new BookList();
+			Registry registry = LocateRegistry.createRegistry(4567);
+			registry.rebind("BookListInterface", manager);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+}
