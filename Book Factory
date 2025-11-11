@@ -1,0 +1,11 @@
+package normalNames;
+
+public class BookFactory {
+	public static Book getBooks(int pages, int chapters) {
+		if (pages >= 400) {
+			return new Novel(chapters);
+		} else {
+			return new ShortStory(chapters);
+		}
+	}
+}
