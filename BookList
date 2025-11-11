@@ -1,0 +1,36 @@
+package normalNames;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+@SuppressWarnings("serial")
+public class BookList extends UnicastRemoteObject implements BookListInterface
+{
+	private ArrayList<Book> books;
+
+	protected BookList() throws RemoteException {
+		books = new ArrayList<>();
+	}
+
+	@Override
+	public void addBook(Book book) throws RemoteException {
+		books.add(book);
+		
+	}
+
+	@Override
+	public ArrayList<Book> getBooks() throws RemoteException {
+		return books;
+	}
+
+	@Override
+	public void editBook(int index, Book updatedBook) throws RemoteException {
+		books.set(index, updatedBook);
+	}
+
+	@Override
+	public void deleteBook(int index) throws RemoteException {
+		books.remove(index);
+		System.out.println("ok");
+	}
+	
+}
