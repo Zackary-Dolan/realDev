@@ -1,14 +1,23 @@
+
 package normalNames;
 
 public class Novel extends Book {
 	private int chapters;
+	private int pages;
 
-	public Novel(int chapters) {
+	public Novel(int chapters, int pages) {
 		this.chapters = chapters;
+		this.pages = pages;
 	}
 
 	public int getChapters() {
 		System.out.println("this is a Novel ");
 		return chapters;
+	}
+
+	@Override
+	public int getPages() {
+		// TODO Auto-generated method stub
+		return pages;
 	}
 }
