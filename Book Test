@@ -1,3 +1,4 @@
+
 package normalNames;
 
 import java.awt.Dimension;
@@ -18,13 +19,10 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
-
 
 public class BookTest extends JFrame implements ActionListener {
 	JFrame window = new JFrame();
@@ -41,15 +39,15 @@ public class BookTest extends JFrame implements ActionListener {
 	private JButton deleteButton = new JButton("delete");
 	private JButton editButton = new JButton("edit");
 	private static TextArea bookText = new TextArea();
-	JCheckBox check = new JCheckBox("Set Colours");
+	BookList booklist;
 
 	private BookListInterface remote;
 
-	public BookTest() {
+	public BookTest() throws RemoteException {
 
 		try {
 			Registry registry = LocateRegistry.getRegistry("localhost", 4567);
-			remote = (BookListInterface) registry.lookup("BookListInterface");
+			remote = (BookListInterface) registry.lookup("BookList");
 			System.out.println("Serber");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -60,6 +58,7 @@ public class BookTest extends JFrame implements ActionListener {
 		addButton.addActionListener(this);
 		deleteButton.addActionListener(this);
 		editButton.addActionListener(this);
+		booklist = convertFromInterface(remote);
 		GridBagLayout layout = new GridBagLayout();
 		GridBagConstraints c = new GridBagConstraints();
 		p.setLayout(layout);
@@ -129,10 +128,6 @@ public class BookTest extends JFrame implements ActionListener {
 		new BookTest();
 	}
 
-	
-	
-	
-	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(showButton)) {
@@ -161,11 +156,11 @@ public class BookTest extends JFrame implements ActionListener {
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
-		}else if (e.getSource().equals(editButton)) {
+		} else if (e.getSource().equals(editButton)) {
 			try {
 				EditThing();
 				ShowList();
-			}catch(IOException e3) {
+			} catch (IOException e3) {
 				e3.printStackTrace();
 			}
 		}
@@ -180,23 +175,76 @@ public class BookTest extends JFrame implements ActionListener {
 		}
 	}
 
-	public void AddThing() throws RemoteException {
+	public void AddThing() throws RemoteException, IOException {
 		int pages = Integer.parseInt(pagesInput.getText());
 		int chapters = Integer.parseInt(chaptersInput.getText());
 		Book newBook = BookFactory.getBooks(pages, chapters);
 		remote.addBook(newBook);
+		
+		BookList a = convertFromInterface(remote);
+		FileOutputStream fileout = new FileOutputStream("Book.ser");
+
+		ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+
+		objectOut.writeObject(a);
+		objectOut.close();
 	}
 
-	public void DeleteThing() throws RemoteException {
+	public void DeleteThing() throws RemoteException, IOException {
 		int index = Integer.parseInt(indexInput.getText());
 		remote.deleteBook(index);
+		
+		BookList a = convertFromInterface(remote);
+		FileOutputStream fileout = new FileOutputStream("Book.ser");
+
+		ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+
+		objectOut.writeObject(a);
+		objectOut.close();
 	}
 
-	public void EditThing() throws RemoteException {
+	public void EditThing() throws IOException {
 		int index = Integer.parseInt(indexInput.getText());
 		int pages = Integer.parseInt(pagesInput.getText());
 		int chapters = Integer.parseInt(chaptersInput.getText());
 		Book updatedBook = BookFactory.getBooks(pages, chapters);
 		remote.editBook(index, updatedBook);
+
+		BookList a = convertFromInterface(remote);
+		FileOutputStream fileout = new FileOutputStream("Book.ser");
+
+		ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+
+		objectOut.writeObject(a);
+		objectOut.close();
+//		System.out.println("please");
 	}
+
+//	public void Serilize() {
+//		try {
+//
+//		BookList a = convertFromInterface(remote);
+//		FileOutputStream fileout = new FileOutputStream("Book.ser");
+//
+//		ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+//
+//		objectOut.writeObject(a);
+//		objectOut.close();
+//		}catch(Exception e){
+//			e.printStackTrace();
+//		}
+//	}
+
+	public BookList convertFromInterface(BookListInterface remote) throws RemoteException {
+		BookList a = new BookList();
+		try {
+			for (Book ai : remote.getBooks()) {
+				a.addBook(BookFactory.getBooks(ai.getChapters(), ai.getPages()));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+	}
+
 }
