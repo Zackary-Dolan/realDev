@@ -1,0 +1,16 @@
+package normalNames;
+
+import java.rmi.*;
+import java.util.ArrayList;
+
+public interface BookInterface extends Remote {
+	void addBook(Book book) throws RemoteException;
+
+	ArrayList<Book> getBooks() throws RemoteException;
+
+	void editBook(int index, Book updatedBook) throws RemoteException;
+
+	void deleteBook(int index) throws RemoteException;
+	
+	
+}
