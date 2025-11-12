@@ -1,21 +1,62 @@
+
 package normalNames;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.*;
 import java.util.ArrayList;
-public class BookServer 
-{
-	public static void main(String [] args) 
-	{
-		try 
-		{
-			BookListInterface manager = new BookList();
+
+public class BookServer {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, FileNotFoundException, AlreadyBoundException {
+		try {
+			FileInputStream fileIn = new FileInputStream("Book.ser");
+
+			ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+
+			@SuppressWarnings("unchecked")
+
+			BookList newBook = (BookList) objectIn.readObject();
+
+//			objectIn.close();
 			Registry registry = LocateRegistry.createRegistry(4567);
-			registry.rebind("BookListInterface", manager);
-		} catch (RemoteException e) {
+			registry.bind("BookList", newBook);
+			System.out.println("1");
+
+			// BookListInterface manager = newBook;
+
+		} catch (Exception e) {
+			
 			e.printStackTrace();
+			
+			BookList manager = new BookList();
+			Book book1 = BookFactory.getBooks(15, 400);
+			Book book2 = BookFactory.getBooks(400, 16);
+			Book book3 = BookFactory.getBooks(400, 16);
+			
+			manager.addBook(book1);
+			manager.addBook(book2);
+			manager.addBook(book3);
+			
+			Registry registry = LocateRegistry.createRegistry(4567);
+			registry.bind("BookList", manager);
+
+
+			FileOutputStream fileout = new FileOutputStream("Book.ser");
+
+			ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+
+			objectOut.writeObject(manager);
+
+			objectOut.close();
+			System.out.println("error in finding file");
 		}
 	}
 }
