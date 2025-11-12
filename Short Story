@@ -2,13 +2,21 @@ package normalNames;
 
 public class ShortStory extends Book {
 	private int chapters;
+	private int pages;
 
-	public ShortStory(int chapters) {
+	public ShortStory(int chapters, int pages) {
 		this.chapters = chapters;
+		this.pages = pages;
 	}
 
 	public int getChapters() {
 		System.out.println("this is a ShortStory ");
 		return chapters;
+	}
+
+	@Override
+	public int getPages() {
+		// TODO Auto-generated method stub
+		return pages;
 	}
 }
