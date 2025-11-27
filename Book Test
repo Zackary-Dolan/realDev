@@ -1,62 +1,250 @@
 
 package normalNames;
 
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.TextArea;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.invoke.MethodHandles.Lookup;
-import java.rmi.*;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.*;
 import java.util.ArrayList;
 
-public class BookServer {
-	public static void main(String[] args) throws IOException, ClassNotFoundException, FileNotFoundException, AlreadyBoundException {
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+public class BookTest extends JFrame implements ActionListener {
+	JFrame window = new JFrame();
+	JPanel p = new JPanel();
+	private JTextField pagesInput = new JTextField(10);
+	private JTextField chaptersInput = new JTextField(10);
+	private JLabel pagesLabel = new JLabel("Pages: ");
+	private JLabel chaptersLabel = new JLabel("Chapters: ");
+	private JButton showButton = new JButton("show Books");
+	private JButton clearButton = new JButton("clear Books");
+	private JButton addButton = new JButton("add Book");
+	private JLabel indexLabel = new JLabel("Index: ");
+	private JTextField indexInput = new JTextField(10);
+	private JButton deleteButton = new JButton("delete");
+	private JButton editButton = new JButton("edit");
+	private static TextArea bookText = new TextArea();
+	BookList booklist;
+
+	private BookListInterface remote;
+
+	public BookTest() throws RemoteException {
+
 		try {
-			FileInputStream fileIn = new FileInputStream("Book.ser");
-
-			ObjectInputStream objectIn = new ObjectInputStream(fileIn);
-
-			@SuppressWarnings("unchecked")
-
-			BookList newBook = (BookList) objectIn.readObject();
-
-//			objectIn.close();
-			Registry registry = LocateRegistry.createRegistry(4567);
-			registry.bind("BookList", newBook);
-			System.out.println("1");
-
-			// BookListInterface manager = newBook;
-
+			Registry registry = LocateRegistry.getRegistry("localhost", 4567);
+			remote = (BookListInterface) registry.lookup("BookList");
+			System.out.println("Serber");
 		} catch (Exception e) {
-			
 			e.printStackTrace();
-			
-			BookList manager = new BookList();
-			Book book1 = BookFactory.getBooks(15, 400);
-			Book book2 = BookFactory.getBooks(16, 400);
-			Book book3 = BookFactory.getBooks(14, 400);
-			System.out.println("creating 3 book objects in new File");
-			manager.addBook(book1);
-			manager.addBook(book2);
-			manager.addBook(book3);
-			
-			Registry registry = LocateRegistry.createRegistry(4567);
-			registry.bind("BookList", manager);
+		}
 
+		showButton.addActionListener(this);
+		clearButton.addActionListener(this);
+		addButton.addActionListener(this);
+		deleteButton.addActionListener(this);
+		editButton.addActionListener(this);
+		booklist = convertFromInterface(remote);
+		GridBagLayout layout = new GridBagLayout();
+		GridBagConstraints c = new GridBagConstraints();
+		p.setLayout(layout);
 
-			FileOutputStream fileout = new FileOutputStream("Book.ser");
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.WEST;
 
-			ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+//-----------------------------------
+		c.gridx = 0;
+		c.gridy = 1;
+		p.add(pagesLabel, c);
 
-			objectOut.writeObject(manager);
+		c.gridx = 1;
+		p.add(pagesInput, c);
 
-			objectOut.close();
-			System.out.println("error in finding file");
+		c.gridx = 0;
+		c.gridy = 2;
+		p.add(chaptersLabel, c);
+
+		c.gridx = 1;
+		p.add(chaptersInput, c);
+
+		c.gridx = 2;
+		c.gridy = 1;
+		p.add(indexLabel, c);
+
+		c.gridx = 3;
+		c.gridy = 1;
+		p.add(indexInput, c);
+//-------------------------------------
+		c.gridy = 3;
+		c.gridx = 0;
+		p.add(addButton, c);
+
+		c.gridx = 1;
+		p.add(clearButton, c);
+
+		c.gridx = 2;
+		p.add(showButton, c);
+
+		c.gridx = 3;
+		p.add(deleteButton, c);
+
+		c.gridx = 4;
+		p.add(editButton, c);
+
+//------------------------------------------
+		c.gridx = 0;
+		c.gridy = 4;
+		c.gridwidth = 6;
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 1.0;
+		c.weighty = 1.0;
+		bookText.setPreferredSize(new Dimension(500, 150));
+		p.add(bookText, c);
+
+		p.setPreferredSize(new Dimension(600, 250));
+		window.setContentPane(p);
+		window.pack();
+		window.setVisible(true);
+		window.setDefaultCloseOperation(window.EXIT_ON_CLOSE);
+	}
+
+	public static void main(String[] args) throws IOException, ClassNotFoundException {
+
+		new BookTest();
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource().equals(showButton)) {
+			try {
+//				bookText.setText("");
+				ShowList();
+			} catch (IOException w) {
+				w.printStackTrace();
+			}
+
+		} else if (e.getSource().equals(clearButton)) {
+			bookText.setText("");
+
+		} else if (e.getSource().equals(addButton)) {
+//			bookText.setText("Im Evil");
+			try {
+				AddThing();
+				ShowList();
+			} catch (IOException e2) {
+				e2.printStackTrace();
+			}
+		} else if (e.getSource().equals(deleteButton)) {
+			try {
+				DeleteThing();
+				ShowList();
+			} catch (IOException e2) {
+				e2.printStackTrace();
+			}
+		} else if (e.getSource().equals(editButton)) {
+			try {
+				EditThing();
+				ShowList();
+			} catch (IOException e3) {
+				e3.printStackTrace();
+			}
+		}
+
+	}
+
+	public void ShowList() throws RemoteException {
+		bookText.setText("");
+		ArrayList<Book> newBooks = remote.getBooks();
+		for (Book book : newBooks) {
+			bookText.append("Chapters: " + book.getChapters() + "\n");
 		}
 	}
+
+	public void AddThing() throws RemoteException, IOException {
+		int pages = Integer.parseInt(pagesInput.getText());
+		int chapters = Integer.parseInt(chaptersInput.getText());
+		Book newBook = BookFactory.getBooks(pages, chapters);
+		remote.addBook(newBook);
+		
+		BookList a = convertFromInterface(remote);
+		FileOutputStream fileout = new FileOutputStream("Book.ser");
+
+		ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+
+		objectOut.writeObject(a);
+		objectOut.close();
+	}
+
+	public void DeleteThing() throws RemoteException, IOException {
+		int index = Integer.parseInt(indexInput.getText());
+		remote.deleteBook(index);
+		
+		BookList a = convertFromInterface(remote);
+		FileOutputStream fileout = new FileOutputStream("Book.ser");
+
+		ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+
+		objectOut.writeObject(a);
+		objectOut.close();
+	}
+
+	public void EditThing() throws IOException {
+		int index = Integer.parseInt(indexInput.getText());
+		int pages = Integer.parseInt(pagesInput.getText());
+		int chapters = Integer.parseInt(chaptersInput.getText());
+		Book updatedBook = BookFactory.getBooks(pages, chapters);
+		remote.editBook(index, updatedBook);
+
+		BookList a = convertFromInterface(remote);
+		FileOutputStream fileout = new FileOutputStream("Book.ser");
+
+		ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+
+		objectOut.writeObject(a);
+		objectOut.close();
+//		System.out.println("please");
+	}
+
+//	public void Serilize() {
+//		try {
+//
+//		BookList a = convertFromInterface(remote);
+//		FileOutputStream fileout = new FileOutputStream("Book.ser");
+//
+//		ObjectOutputStream objectOut = new ObjectOutputStream(fileout);
+//
+//		objectOut.writeObject(a);
+//		objectOut.close();
+//		}catch(Exception e){
+//			e.printStackTrace();
+//		}
+//	}
+
+	public BookList convertFromInterface(BookListInterface remote) throws RemoteException {
+		BookList a = new BookList();
+		try {
+			for (Book ai : remote.getBooks()) {
+				a.addBook(BookFactory.getBooks(ai.getChapters(), ai.getPages()));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+	}
+
 }
